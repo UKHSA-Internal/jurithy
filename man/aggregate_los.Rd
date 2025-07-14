@@ -11,10 +11,10 @@ aggregate_los(
   strata = NULL,
   count_id = NULL,
   event_id = NULL,
-  start_date_point = "start_of_day",
   fill = FALSE,
   silent = TRUE,
-  units = "days"
+  units = "days",
+  los_range = NULL
 )
 }
 \arguments{
@@ -23,7 +23,7 @@ aggregate_los(
 \item{end_date}{Date. Event end date}
 
 \item{level}{Character. Desired level. Passed to 'by' in \code{\link{seq}}.
-Options include all accepted in \code{\link[=seq]{seq(..., by = XX)}}}
+Options include all accepted in \code{\link[=seq.POSIXt]{seq.POSIXt(..., by = XX)}}}
 
 \item{strata}{Atomic. Population strata}
 
@@ -33,85 +33,98 @@ per iteration (batch) is included}
 \item{event_id}{Atomic. If provided the unique count of \code{event_id}
 per iteration (batch) is included}
 
-\item{start_date_point}{Character|Date. Start point to begin aggregation.
-Acceptable options are "start_of_day", "start_of_month", "start_of_quarter"
-or "start_of_year". Alternatively, a specific date can be provided.}
-
 \item{fill}{Logical. If TRUE, place holders are included if
 there is no occurrence of the event within the batch of the loop.}
 
 \item{silent}{Logical. Print (or not) current iteration of loop.}
 
-\item{units}{Character. Desired unit for level. Passed to 'by' in \code{\link{seq}}.
-Options include all accepted in \code{\link[=seq]{seq(..., by = XX)}}}
+\item{units}{Character. Desired unit for LOS. Passed to \code{\link{difftime}}.
+Options include all accepted in \code{\link{difftime}}s}
+
+\item{los_range}{NULL|Date. A date range of the period to cover in the aggregation.
+If \code{NULL} (default), the rane of \code{start_date} and \code{start_date} is used.}
 }
 \value{
-A data frame
+A data frame with the following columns
+\itemize{
+\item \code{strata} - See \code{strata} argument.
+\item \code{days_origin_0} - Total length of stay per \code{strata} when the first day in each period was taken day 0.
+\item \code{days_origin_1} - Total length of stay per \code{strata} when the first day in each period was taken day 1.
+\item \code{unique.count_id} - Unique count of \code{count.id} per per \code{strata}.
+\item \code{unique.event_id} - Unique count of \code{event_id} per per \code{strata}.
+\item \code{batch} - Batch of length of stay per \code{strata} and \code{level}
+\item \code{start_date} - Start date of \code{batch}
+\item \code{end_date} - End date of \code{batch}
+}
 }
 \description{
 Aggregate duration of record level events
 }
 \examples{
+# Example of dated events
 dfr <- data.frame(
   start_date = as.Date(c('2024-05-28', '2024-05-05', '2024-06-01')),
   end_date = as.Date(c('2024-06-05', '2024-05-11', '2024-06-20')),
   strata = c('A', 'A', 'B'))
 
-dfr$duration <- difftime(dfr$end_date, dfr$start_date, 'days')
+# Length of stay across the entire period
+ dfr$duration <- difftime(dfr$end_date, dfr$start_date, 'days')
+ dfr
 
-dfr
+ # Aggregate to a annual level
+ aggregate_los(
+   start_date = dfr$start_date,
+   end_date = dfr$end_date,
+   level = 'year',
+   strata = dfr$strata
+ )
 
-aggregate_los(
-  start_date = dfr$start_date,
-  end_date = dfr$end_date
-)
+ # Aggregate to a monthly level
+ aggregate_los(
+   start_date = dfr$start_date,
+   end_date = dfr$end_date,
+   level = 'month',
+   strata = dfr$strata
+ )
 
-aggregate_los(
-  start_date = dfr$start_date,
-  end_date = dfr$end_date,
-  level = 'month'
-)
+ # Cover a range of wider of dates. Use `fill` for empty rows
+ aggregate_los(
+   start_date = dfr$start_date,
+   end_date = dfr$end_date,
+   level = 'month',
+   strata = dfr$strata,
+   los_range =  c('2024-01-01', '2024-12-01')
+ )
 
-aggregate_los(
-  start_date = dfr$start_date,
-  end_date = dfr$end_date,
-  level = 'month',
-  strata = dfr$strata
-)
+ aggregate_los(
+   start_date = dfr$start_date,
+   end_date = dfr$end_date,
+   level = 'month',
+   strata = dfr$strata,
+   los_range =  c('2024-01-01', '2024-12-01'),
+   fill = TRUE
+ )
 
-aggregate_los(
-  start_date = dfr$start_date,
-  end_date = dfr$end_date,
-  level = 'month',
-  strata = dfr$strata,
-  start_date_point = 'start_of_month'
-)
+ # Return LOS is different units of time
+ aggregate_los(
+   start_date = dfr$start_date,
+   end_date = dfr$end_date,
+   level = 'month',
+   strata = dfr$strata,
+   los_range =  c('2024-01-01', '2024-12-01'),
+   units = 'weeks'
+ )
 
-aggregate_los(
-  start_date = dfr$start_date,
-  end_date = dfr$end_date,
-  level = 'month',
-  strata = dfr$strata,
-  start_date_point = 'start_of_month',
-  units = 'weeks'
-)
 
-aggregate_los(
-  start_date = as.POSIXct(dfr$start_date),
-  end_date = as.POSIXct(dfr$end_date),
-  level = 'month',
-  strata = dfr$strata,
-  start_date_point = 'start_of_month',
-  units = 'mins'
-)
-
-aggregate_los(
-  start_date = dfr$start_date,
-  end_date = dfr$end_date,
-  level = 'day',
-  strata = dfr$strata,
-  start_date_point = 'start_of_month',
-  units = 'days'
-)
+ # Return LOS is different units of time
+ aggregate_los(
+   start_date = dfr$start_date,
+   end_date = dfr$end_date,
+   level = '2 years',
+   strata = dfr$strata,
+   los_range =  c('2020-01-01', '2025-12-01'),
+   units = 'weeks',
+   fill = TRUE
+ )
 
 }
