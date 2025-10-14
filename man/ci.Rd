@@ -14,19 +14,19 @@ ci_rate_ratio(r1, n1, r2, n2, sig_level = 0.95)
 ci_risk_ratio(n1, t1, n2, t2, sig_level = 0.95)
 }
 \arguments{
-\item{t1}{Proportion 1}
+\item{t1}{Population size 1}
 
-\item{n1}{Sample size 1}
+\item{n1}{Sample 1}
 
-\item{t2}{Proportion 2}
+\item{t2}{Population size 2}
 
 \item{n2}{Sample size 2}
 
 \item{sig_level}{Significance level}
 
-\item{r1}{Incidence rate 1}
+\item{r1}{Rate per population at risk 1}
 
-\item{r2}{Incidence rate 2}
+\item{r2}{Rate per population at risk 2}
 }
 \value{
 \code{numeric}
