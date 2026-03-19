@@ -125,7 +125,7 @@ aggregate_los <- function(
 
   bd_a <- seq(from = ll_dt_a[1], to = ll_dt_a[2], by = level)
   bd_a <- unique(c(bd_a, ll_dt_a[2]))
-  bd_z <- bys_lead(bd_a)
+  bd_z <- bys_lead(bd_a, val = bd_a)
 
   if(
     (grepl('^day|^1 day|^1$', as.character(level)) & any(grepl('^day', units))) |
